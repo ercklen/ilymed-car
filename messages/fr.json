@@ -1,0 +1,29 @@
+{
+  "Header": {
+    "home": "Accueil",
+    "vehicles": "Nos voitures",
+    "how_it_works": "Comment ça marche ?",
+    "about": "À propos",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "login": "Connexion",
+    "book_btn": "Réserver une voiture"
+  },
+  "Hero": {
+    "title": "Louez la voiture idéale, simplement.",
+    "subtitle": "Découvrez nos véhicules et réservez votre voiture en quelques clics.",
+    "search": {
+      "pickup_loc": "Lieu de prise en charge",
+      "pickup_date": "Date de départ",
+      "pickup_time": "Heure de départ",
+      "return_date": "Date de retour",
+      "return_time": "Heure de retour",
+      "btn": "Rechercher"
+    }
+  },
+  "Footer": {
+    "tagline": "Votre voiture. Votre liberté.",
+    "terms": "Conditions générales",
+    "privacy": "Politique de confidentialité"
+  }
+}

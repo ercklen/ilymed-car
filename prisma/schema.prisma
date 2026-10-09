@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  STAFF
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  CANCELLED
+  ACTIVE
+  COMPLETED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum Transmission {
+  AUTOMATIC
+  MANUAL
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  HYBRID
+  ELECTRIC
+}
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  passwordHash     String?
+  firstName        String
+  lastName         String
+  phone            String?
+  role             Role      @default(CUSTOMER)
+  staffPermissions String?   // Comma separated list of permissions: "vehicles,bookings,calendar,customers,payments,reviews,messages"
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  bookings         Booking[]
+  reviews          Review[]
+  payments         Payment[]
+}
+
+model VehicleCategory {
+  id          String    @id @default(uuid())
+  nameFr      String
+  nameAr      String
+  description String?
+  vehicles    Vehicle[]
+}
+
+model Vehicle {
+  id             String    @id @default(uuid())
+  brand          String
+  model          String
+  version        String?
+  year           Int
+  registration   String    @unique
+  vin            String?   @unique
+  mileage        Int
+  color          String
+  
+  transmission   Transmission
+  fuel           FuelType
+  seats          Int
+  doors          Int
+  horsepower     Int?
+  
+  descriptionFr  String    @db.Text
+  descriptionAr  String    @db.Text
+  
+  dailyPrice     Float
+  weeklyPrice    Float?
+  monthlyPrice   Float?
+  weekendPrice   Float?
+  securityDeposit Float
+  deliveryFee    Float     @default(0)
+  
+  isPublished    Boolean   @default(false)
+  instantBooking Boolean   @default(false)
+  
+  categoryId     String
+  category       VehicleCategory @relation(fields: [categoryId], references: [id])
+  
+  locationId     String
+  location       Location @relation(fields: [locationId], references: [id])
+  
+  images         VehicleImage[]
+  features       VehicleFeature[]
+  bookings       Booking[]
+  blockedDates   BlockedDate[]
+  reviews        Review[]
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model VehicleImage {
+  id        String   @id @default(uuid())
+  url       String
+  isPrimary Boolean  @default(false)
+  vehicleId String
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model VehicleFeature {
+  id        String   @id @default(uuid())
+  nameFr    String
+  nameAr    String
+  icon      String?
+  vehicles  Vehicle[]
+}
+
+model Location {
+  id           String    @id @default(uuid())
+  nameFr       String
+  nameAr       String
+  address      String
+  city         String
+  country      String
+  pickupInstrFr String?
+  pickupInstrAr String?
+  vehicles     Vehicle[]
+}
+
+model BlockedDate {
+  id        String   @id @default(uuid())
+  startDate DateTime
+  endDate   DateTime
+  reason    String?
+  vehicleId String
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id             String        @id @default(uuid())
+  bookingNumber  String        @unique
+  pickupDate     DateTime
+  returnDate     DateTime
+  
+  rentalAmount   Float
+  serviceFee     Float
+  deliveryFee    Float
+  taxAmount      Float
+  totalAmount    Float
+  
+  status         BookingStatus @default(PENDING)
+  
+  userId         String
+  user           User          @relation(fields: [userId], references: [id])
+  
+  vehicleId      String
+  vehicle        Vehicle       @relation(fields: [vehicleId], references: [id])
+  
+  payment        Payment?
+  review         Review?
+  
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  amount        Float
+  status        PaymentStatus @default(PENDING)
+  providerId    String?       // e.g. Stripe PaymentIntent ID
+  paymentMethod String?
+  
+  bookingId     String        @unique
+  booking       Booking       @relation(fields: [bookingId], references: [id])
+  
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  rating      Int      // 1-5
+  comment     String?  @db.Text
+  isApproved  Boolean  @default(false)
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  vehicleId   String
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+  
+  bookingId   String   @unique
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  
+  createdAt   DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
